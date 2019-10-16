@@ -895,10 +895,22 @@ bool isSegInPolygon(const vector<Point>& polygon, const Line& l)
 }
 
 // 4.7、判断圆是否在多边形内部
-//bool isCircleInPolygon(const vector<Point>& polygon, const Point& p, double radius)
-//{
+// 只有多边形所有的边都在圆的外部，圆才处于多边形内部
 //
-//}
+//	参数： polygon : 多边形 c : 圆心 radius ： 半径
+//
+bool isCircleInPolygon(const vector<Point>& polygon, const Point& c, double radius)
+{
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		const Point& p1 = polygon[i];
+		const Point& p2 = polygon[(i + 1) % polygon.size()];
+		Line line(p1, p2, true);
+		if (segToCircle(c, radius, line) != 2)
+			return false;
+	}
+	return true;
+}
 
 // 4.8、寻找点集凸包算法（graham算法）
 //
