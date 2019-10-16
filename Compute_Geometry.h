@@ -235,7 +235,10 @@ int pointToCircle(const Point& c, double radius, const Point& p);
 // 5.2、直线和圆的关系
 int lineToCircle(const Point& c, double radius, const Line& l);
 
-// 5.3、两圆之间的关系
+// 5.3、线段和圆的关系
+int segToCircle(const Point& c, double radius, const Line& l);
+
+// 5.4、两圆之间的关系
 int circleToCircle(const Point& c1, double raduis1, const Point& c2, double radius2);
 
 
@@ -892,46 +895,46 @@ bool isSegInPolygon(const vector<Point>& polygon, const Line& l)
 }
 
 // 4.7、判断圆是否在多边形内部
-bool isCircleInPolygon(const vector<Point>& polygon, const Point& p, double radius)
-{
-
-}
+//bool isCircleInPolygon(const vector<Point>& polygon, const Point& p, double radius)
+//{
+//
+//}
 
 // 4.8、寻找点集凸包算法（graham算法）
 //
 // 参数： points ： 平面点集
 //
-vector<Point> findConvexGraham(const vector<Point>& points)
-{
-
-}
+//vector<Point> findConvexGraham(const vector<Point>& points)
+//{
+//
+//}
 
 // 4.9、寻找点集凸包算法（上下凸包法）时间复杂度O(nlogn)
 //
 //	参数： points : 平面点集
 //
-vector<Point> findConvex(const vector<Point>& points)
-{
-
-}
+//vector<Point> findConvex(const vector<Point>& points)
+//{
+//
+//}
 
 // 4.10、求简单多边形重心
 //
 // 参数： polygon ： 简单多边形
 //
-Point centerOfPolygon(const vector<Point>& polygon)
-{
-
-}
+//Point centerOfPolygon(const vector<Point>& polygon)
+//{
+//
+//}
 
 // 4.11、求肯定在多边形内部的一个点
 //
 // 参数： polygon ： 简单多边形
 //
-Point pointInPolygon(const vector<Point>& polygon)
-{
-
-}
+//Point pointInPolygon(const vector<Point>& polygon)
+//{
+//
+//}
 
 // 4.12、获取多边形的包围轮廓
 // 即多边形的最小包围盒，由左下和右上两个点表示
@@ -981,11 +984,11 @@ int pointToCircle(const Point& c, double radius, const Point& p)
 //
 int lineToCircle(const Point& c, double radius, const Line& l)
 {
-	double ptol_d = ptolDistance(c, l);
+	double ctol_d = ptolDistance(c, l);
 
-	if (ptol_d < radius)
+	if (ctol_d < radius)
 		return 0;
-	else if (ptol_d == radius)
+	else if (ctol_d == radius)
 		return 1;
 	else
 		return 2;
@@ -996,20 +999,25 @@ int lineToCircle(const Point& c, double radius, const Line& l)
 // 参数： c: 圆心 radiuns ： 圆的半径  l : 判断的线段
 // 返回值 ： 0 ： 圆内 1 ： 与圆相交  2： 圆外
 //
-int lineToCircle(const Point& c, double radius, const Line& l)
+int segToCircle(const Point& c, double radius, const Line& l)
 {
-	int s_state = pointToCircle(c, radius, l.s);
-	int e_state = pointToCircle(c, radius, l.e);
+	double ctol_d = ptolDistance(c, l);
 
-	if (s_state == 0 && e_state == 0)
-		return 0;
-	else if ((s_state == 0 && e_state != 0) || (s_state != 0 && e_state == 0))
+	if (ctol_d > radius)
+		return 2;
+	else if (ctol_d == radius)
 		return 1;
 	else
-		return 2;
+	{
+		Point project_p = ptolProjection(c, l);
+		if (isponl(project_p, l))
+			return 1;
+		else
+			return 2;
+	}
 }
 
-// 5.3、两圆之间的关系
+// 5.4、两圆之间的关系
 // 
 // 参数： c1 : 圆1圆心，r1 圆1半径 c2 : 圆2圆心，r2 圆2半径
 // 返回值：0 ：内含 1：内切 2：相交 3：外切 4：外离
