@@ -16,6 +16,8 @@
 /*** 包含的头文件 ***/
 #include <iostream>
 #include <vector>
+#include <map>
+#include <stack>
 #include <algorithm>
 
 using namespace std;
@@ -925,22 +927,137 @@ bool isCircleInPolygon(const vector<Point>& polygon, const Point& c, double radi
 }
 
 // 4.8、寻找点集凸包算法（graham算法）
+// 算法链接：https://blog.csdn.net/acm_zl/article/details/9342631
 //
 // 参数： points ： 平面点集
 //
-//vector<Point> findConvexGraham(const vector<Point>& points)
-//{
-//
-//}
+vector<Point> findConvexGraham(const vector<Point>& points)
+{
+	vector<Point> result;
+
+	// 点的数量必须大于三个
+	if (points.size() < 3)
+		return result;
+
+	// 寻找最底部的点
+	int index = 0;
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (points[i].y < points[index].y)
+		{
+			index = i;
+		}
+	}
+	Point convex_p = points[index];
+
+	// 计算每个点的极角
+	map<double, int> cos_map;
+	Point x_vec(1.0, 0.0);
+	for (int i = 0; i < points.size(); ++i)
+	{
+		if (i != index)
+		{
+			double cos_value = Cos(sub(points[i], convex_p), x_vec);
+			// 如果有多个点有相同的极角，则取最远的点
+			if (cos_map.count(-cos_value) != 0)
+			{
+				if (length(points[i]) > length(points[cos_map[-cos_value]]))
+					cos_map[-cos_value] = i;
+			}
+			else
+				cos_map[-cos_value] = i;
+		}
+	}
+	
+	// 保存结果的栈
+	stack<int> result_stack;
+	// 存入开始的两个点
+	result_stack.push(index);
+	result_stack.push(cos_map.begin()->second);
+
+	for (auto iter = (++cos_map.begin()); iter != cos_map.end(); ++iter)
+	{
+		int first = result_stack.top();
+		result_stack.pop();
+		int second = result_stack.top();
+
+		Point vec1 = sub(points[first], points[second]);
+		Point vec2 = sub(points[iter->second], points[first]);
+		if (multiply(vec1, vec2).z >= 0)
+			result_stack.push(first);
+		result_stack.push(iter->second);
+	}
+
+	// 将数据从栈中读取
+	while (!result_stack.empty())
+	{
+		result.push_back(points[result_stack.top()]);
+		result_stack.pop();
+	}
+
+	std::reverse(result.begin(), result.end());
+
+	return result;
+}
 
 // 4.9、寻找点集凸包算法（上下凸包法）时间复杂度O(nlogn)
 //
 //	参数： points : 平面点集
 //
-//vector<Point> findConvex(const vector<Point>& points)
-//{
-//
-//}
+// 点根据字典序的比较函数
+bool cmp(Point a, Point b)
+{
+	if (a.x == b.x)
+		return a.y < b.y;
+	return a.x < b.x;
+}
+vector<Point> findConvex(const vector<Point>& points)
+{
+	vector<Point> result;
+	if (points.size() < 3)
+		return result;
+
+	vector<Point> tmp_points = points;
+	// 首先将所有点按照字典序排序
+	sort(tmp_points.begin(), tmp_points.end(), cmp);
+
+	// 上凸包
+	vector<Point> upper_hull;
+	// 存入第一个和第二个点
+	upper_hull.push_back(tmp_points[0]);
+	upper_hull.push_back(tmp_points[1]);
+	for (int i = 2; i < tmp_points.size(); ++i)
+	{
+		upper_hull.push_back(tmp_points[i]);
+		while (upper_hull.size() > 2 && multiply(sub(upper_hull[upper_hull.size() - 2], upper_hull[upper_hull.size() - 3]), sub(upper_hull[upper_hull.size() - 1], upper_hull[upper_hull.size() - 3])).z >= 0)
+		{
+			upper_hull.erase(upper_hull.end() - 2);
+		}
+	}
+	// 下凸包
+	vector<Point> lower_hull;
+	// 存入倒数第一第二个点
+	lower_hull.push_back(tmp_points[tmp_points.size() - 1]);
+	lower_hull.push_back(tmp_points[tmp_points.size() - 2]);
+	for (int i = tmp_points.size() - 3; i >= 0; --i)
+	{
+		lower_hull.push_back(tmp_points[i]);
+		while (lower_hull.size() > 2 && multiply(sub(lower_hull[lower_hull.size() - 2], lower_hull[lower_hull.size() - 3]), sub(lower_hull[lower_hull.size() - 1], lower_hull[lower_hull.size() - 3])).z >= 0)
+		{
+			lower_hull.erase(lower_hull.end() - 1);
+		}
+	}
+	// 删除重复点
+	lower_hull.erase(lower_hull.begin());
+	lower_hull.erase(lower_hull.end() - 1);
+
+	// 合并上下凸包
+	upper_hull.insert(upper_hull.end(), lower_hull.begin(), lower_hull.end());
+
+	result = upper_hull;
+
+	return result;
+}
 
 // 4.10、求简单多边形重心
 // 算法原理链接：
