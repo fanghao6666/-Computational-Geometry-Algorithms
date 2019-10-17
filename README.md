@@ -59,6 +59,8 @@ This file is implementation of Common Common Computational Geometry Algorithms.P
 
 6、计算平面的单位法向量
 
+7、计算三角形面积
+
 ## 四、多边形
 
 1、判断多边形顶点的凹凸性
