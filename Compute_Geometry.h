@@ -190,6 +190,9 @@ Point ltotInterPoint(const Triangle& t, const Line& l);
 // 3.6、计算平面的单位法向量
 Point getUnitNormal(const Triangle& t);
 
+// 3.7、计算三角形的面积
+double areaOfTriangle(const Triangle& t);
+
 
 // 四、多边形
 // 4.1、判断多边形顶点的凹凸性
@@ -746,6 +749,15 @@ Point getUnitNormal(const Triangle& t)
 	return normalize(multiply(vec1, vec2));
 }
 
+// 3.7、计算三角形的面积
+//
+// 参数： t : 三角形平面
+//
+double areaOfTriangle(const Triangle& t)
+{
+	return (0.5 * length(multiply(sub(t.v1,t.v0),sub(t.v2,t.v0))));
+}
+
 // 四、多边形
 // 如果没有特别说明，则默认输入多边形顶点按照逆时针排列，点为二维点即z=0
 
@@ -931,22 +943,81 @@ bool isCircleInPolygon(const vector<Point>& polygon, const Point& c, double radi
 //}
 
 // 4.10、求简单多边形重心
+// 算法原理链接：
 //
 // 参数： polygon ： 简单多边形
 //
-//Point centerOfPolygon(const vector<Point>& polygon)
-//{
-//
-//}
+Point centerOfPolygon(const vector<Point>& polygon)
+{
+	double polygon_area(0.0);
+	Point center;
+	Point origin;
+
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		Point curr_p = polygon[i];
+		Point next_p = polygon[(i + 1) % polygon.size()];
+		Triangle t(origin, curr_p, next_p);
+
+		double curr_area = areaOfTriangle(t);
+		polygon_area += curr_area;
+
+		center = add(center, mul(div(add(curr_p, next_p), 3), curr_area));
+	}
+
+	center = div(center, polygon_area);
+
+	return center;
+}
 
 // 4.11、求肯定在多边形内部的一个点
+// 定理1: 每个多边形至少有一个凸顶点，
+//		  x坐标最大、最小的点肯定是凸顶点，y坐标最大、最小的点肯定是凸顶点
+// 定理2：顶点数>= 4的简单多边形至少有一条对角线
 //
 // 参数： polygon ： 简单多边形
 //
-//Point pointInPolygon(const vector<Point>& polygon)
-//{
-//
-//}
+Point pointInPolygon(const vector<Point>& polygon)
+{
+	// 凸顶点和索引
+	int index = 0;
+	Point convex_p = polygon[0];
+	// 寻找一个凸顶点
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		if (polygon[i].y < convex_p.y)
+		{
+			index = i;
+			convex_p = polygon[i];
+		}
+	}
+	// 获取凸顶点前后一个点
+	int size = polygon.size();
+	Point pre_p = polygon[(index - 1 + size) % size];
+	Point next_p = polygon[(index + 1) % size];
+	Triangle t(convex_p, pre_p, next_p);
+	double min_d = double(INT_MAX);
+	bool flag = false;
+	Point min_p;
+	for (int i = 0; i < polygon.size(); ++i)
+	{
+		if (i == index || i == ((index - 1 + size) % size) || i == ((index + 1) % size))
+			continue;
+		flag = true;
+		if (distance(convex_p, polygon[i]) < min_d)
+		{
+			min_p = polygon[i];
+			min_d = distance(convex_p, polygon[i]);
+		}
+	}
+	// 如何没有顶点在三角形内部，则返回前后点的中点
+	if (!flag)
+	{
+		return div(add(pre_p, next_p), 2);
+	}
+	// 返回最近点和凸顶点的中点
+	return div(add(convex_p, min_p), 2);
+}
 
 // 4.12、获取多边形的包围轮廓
 // 即多边形的最小包围盒，由左下和右上两个点表示
