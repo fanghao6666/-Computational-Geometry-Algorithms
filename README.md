@@ -33,6 +33,8 @@ This file is implementation of Common Common Computational Geometry Algorithms.P
 
 12、向量正弦、余弦、正切
 
+13、随机生成n个点
+
 ## 二、直线和线段
 
 1、线段/直线是否相交/平行
@@ -60,6 +62,8 @@ This file is implementation of Common Common Computational Geometry Algorithms.P
 6、计算平面的单位法向量
 
 7、计算三角形面积
+
+8、随机生成n条线
 
 ## 四、多边形
 
