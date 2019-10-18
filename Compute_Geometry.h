@@ -19,6 +19,8 @@
 #include <map>
 #include <stack>
 #include <algorithm>
+#include <random>
+#include <ctime>
 
 using namespace std;
 
@@ -72,7 +74,7 @@ Point mul(const Point& p, double ratio)
 Point div(const Point& p, double ratio)
 {
 	Point res;
-	
+
 	res.x = p.x / ratio;
 	res.y = p.y / ratio;
 	res.z = p.z / ratio;
@@ -151,34 +153,40 @@ double Tan(const Point& op, const Point& p1, const Point& p2);
 double Tan(const Point& vec1, const Point& vec2);
 
 // 1.13、矢量夹角角度
-double Angle(const Point& op, const Point& p1, const Point& p2,bool is_radian = true);
-double Angle(const Point& vec1, const Point& vec,bool is_radian = true);
+double Angle(const Point& op, const Point& p1, const Point& p2, bool is_radian = true);
+double Angle(const Point& vec1, const Point& vec, bool is_radian = true);
 
 // 1.14、判断三点是否共线
 bool isPointsCollinear(const Point& p1, const Point& p2, const Point& p3);
 
+// 1.15、在（-1，-1）到（1，1）随机生成n个点
+vector<Point> randomGenPoints(int num);
+
 // 二、线
 // 2.1、线段是否相交
-bool isSegIntersect(const Line& l1, const Line& l2,Point& inter_p);
+bool isSegIntersect(const Line& l1, const Line& l2, Point& inter_p);
 
 // 2.2、求直线的夹角
-double angleOfLines(const Line& l1, const Line& l2,bool is_radian = true);
+double angleOfLines(const Line& l1, const Line& l2, bool is_radian = true);
 
 // 2.3、一阶贝塞尔曲线插值
 vector<Point> firstOrderBezier(const Point& s, const Point& e, int inter_num);
 
 // 2.4、二阶贝塞尔曲线插值
-vector<Point> secondOrderBezier(const Point& s, const Point& e, const Point& p,int inter_num);
+vector<Point> secondOrderBezier(const Point& s, const Point& e, const Point& p, int inter_num);
 
 // 2.5、三阶贝塞尔曲线插值
-vector<Point> thirdOrderBezier(const Point& s, const Point& e, const Point& p1,const Point& p2,int inter_num);
+vector<Point> thirdOrderBezier(const Point& s, const Point& e, const Point& p1, const Point& p2, int inter_num);
+
+// 2.6、在（-1，-1）到（1，1）随机生成n条线
+vector<Line> randomGenLines(int num);
 
 // 三、三角形
 // 3.1、三角形三个点是否能够构成三角形
 bool isTriangle(const Triangle& t);
 
 // 3.2、点是否在三角形内部
-bool isPointInTriangle(const Triangle& t, const Point& p,double& u,double& v);
+bool isPointInTriangle(const Triangle& t, const Point& p, double& u, double& v);
 
 // 3.3、点到平面的投影点（距离最近的点）
 Point ptotProjection(const Triangle& t, const Point& p);
@@ -330,7 +338,7 @@ Point multiply(const Point& vec1, const Point& vec2)
 //
 double ptolDistance(const Point& p, const Line& l)
 {
-	Point line_vec = sub(l.e,l.s);
+	Point line_vec = sub(l.e, l.s);
 	Point point_vec = sub(p, l.s);
 
 	// 首先计算点在线段投影长度
@@ -356,7 +364,7 @@ Point ptolProjection(const Point& p, const Line& l)
 	double project_len = dotMultiply(point_vec, unit_line_vec);
 
 	// 投影点
-	Point project_p = add(l.s,mul(unit_line_vec, project_len));
+	Point project_p = add(l.s, mul(unit_line_vec, project_len));
 
 	return project_p;
 }
@@ -395,10 +403,10 @@ bool isponl(const Point& p, const Line& l)
 	// 点是否在线段上
 	if (l.is_seg)
 	{
-		if (equal(p,l.s) || equal(p,l.e))
+		if (equal(p, l.s) || equal(p, l.e))
 			return true;
 		return (0.0 == length(mul_vec) && dot < 0.0);
-		
+
 	}
 	// 点是否在直线上
 	else
@@ -489,7 +497,7 @@ double Angle(const Point& op, const Point& p1, const Point& p2, bool is_radian)
 }
 // 参数： vec1 : 矢量1 vec2 : 矢量2
 // 
-double Angle(const Point& vec1, const Point& vec2,bool is_radian)
+double Angle(const Point& vec1, const Point& vec2, bool is_radian)
 {
 	double cos_value = Cos(vec1, vec2);
 
@@ -512,6 +520,27 @@ bool isPointsCollinear(const Point& p1, const Point& p2, const Point& p3)
 	return isponl(p3, line);
 }
 
+// 1.15、在（-1，-1）到（1，1）随机生成n个点
+//
+// 参数： down_left : 区域左下角 up_right: 区域右上角 num : 生成点的数量
+//
+vector<Point> randomGenPoints(int num)
+{
+	vector<Point> result;
+
+	std::uniform_real_distribution<double> dist(-0.9, 0.9);
+	std::mt19937 rng;
+	rng.seed(std::random_device{}());
+	for (int i = 0; i < num; ++i)
+	{
+		double rand_x = dist(rng);
+		double rand_y = dist(rng);
+
+		result.push_back(Point(rand_x, rand_y));
+	}
+	return result;
+}
+
 // 二、线
 
 // 2.1、线段是否相交
@@ -520,7 +549,7 @@ bool isPointsCollinear(const Point& p1, const Point& p2, const Point& p3)
 //
 // 参数： l1 : 线段1  l2 : 线段2  inter_p : 如果相交返回交点
 //
-bool isSegIntersect(const Line& l1, const Line& l2,Point& inter_p)
+bool isSegIntersect(const Line& l1, const Line& l2, Point& inter_p)
 {
 	Point line1 = sub(l1.e, l1.s);
 	Point line2 = sub(l2.e, l2.s);
@@ -586,7 +615,7 @@ bool isSegIntersect(const Line& l1, const Line& l2,Point& inter_p)
 // 
 // 参数： l1 : 线段1 l2 : 线段2
 //
-double angleOfLines(const Line& l1, const Line& l2,bool is_radian)
+double angleOfLines(const Line& l1, const Line& l2, bool is_radian)
 {
 	Point line1 = sub(l1.e, l1.s);
 	Point line2 = sub(l2.e, l2.s);
@@ -626,7 +655,7 @@ vector<Point> secondOrderBezier(const Point& s, const Point& e, const Point& p, 
 	for (int i = 1; i <= inter_num; ++i)
 	{
 		double a = double(i) / double(inter_num + 1);
-		double a1 = pow(a,2);
+		double a1 = pow(a, 2);
 		double a2 = 2 * a * (1.0 - a);
 		double a3 = pow(1.0 - a, 2);
 		res.push_back(add(add(mul(s, a3), mul(p, a2)), mul(e, a1)));
@@ -652,11 +681,36 @@ vector<Point> thirdOrderBezier(const Point& s, const Point& e, const Point& p1, 
 		double a2 = 3 * pow(a, 2) * (1.0 - a);
 		double a3 = 3 * pow(1.0 - a, 2) * a;
 		double a4 = pow(1.0 - a, 3);
-		res.push_back(add(add(add(mul(s, a4), mul(p1, a3)), mul(p2, a2)),mul(e,a1)));
+		res.push_back(add(add(add(mul(s, a4), mul(p1, a3)), mul(p2, a2)), mul(e, a1)));
 	}
 	res.push_back(e);
 
 	return res;
+}
+
+// 2.6、在（-1，-1）到（1，1）随机生成n条线
+//
+// 参数 num : 需要生成的线段的数量
+//
+vector<Line> randomGenLines(int num)
+{
+	vector<Line> result;
+
+	std::uniform_real_distribution<double> dist(-0.9, 0.9);
+	std::mt19937 rng;
+	rng.seed(std::random_device{}());
+	for (int i = 0; i < num; ++i)
+	{
+		double rand_sx = dist(rng);
+		double rand_sy = dist(rng);
+		Point p1(rand_sx, rand_sy);
+		double rand_ex = dist(rng);
+		double rand_ey = dist(rng);
+		Point p2(rand_ex, rand_ey);
+		
+		result.push_back(Line(p1,p2,true));
+	}
+	return result;
 }
 
 // 三、三角形
@@ -757,7 +811,7 @@ Point getUnitNormal(const Triangle& t)
 //
 double areaOfTriangle(const Triangle& t)
 {
-	return (0.5 * length(multiply(sub(t.v1,t.v0),sub(t.v2,t.v0))));
+	return (0.5 * length(multiply(sub(t.v1, t.v0), sub(t.v2, t.v0))));
 }
 
 // 四、多边形
@@ -781,7 +835,7 @@ void checkConvex(const vector<Point>& polygon, vector<bool>& flags)
 			index = i;
 		}
 	}
-	/* 判断每个点的凹凸性 
+	/* 判断每个点的凹凸性
 	*  通过判断前后两个点的向量叉乘判断是否满足逆时针
 	*/
 	int size = polygon.size() - 1;
@@ -855,10 +909,10 @@ bool isPointInPolygon(const vector<Point>& polygon, const Point& p)
 {
 	Point down_left, up_right;
 	boxOfPolygon(polygon, down_left, up_right);
-	
+
 	// 位于多边形外部一点
 	Point out_p = sub(down_left, Point(10.0, 0.0));
-	
+
 	int cnt(0);
 	Line p_line(p, out_p, true);
 	for (int i = 0; i < polygon.size(); ++i)
@@ -930,7 +984,7 @@ bool isCircleInPolygon(const vector<Point>& polygon, const Point& c, double radi
 // 算法链接：https://blog.csdn.net/acm_zl/article/details/9342631
 //
 // 参数： points ： 平面点集
-//
+//目前实现的版本有问题
 vector<Point> findConvexGraham(const vector<Point>& points)
 {
 	vector<Point> result;
@@ -968,7 +1022,7 @@ vector<Point> findConvexGraham(const vector<Point>& points)
 				cos_map[-cos_value] = i;
 		}
 	}
-	
+
 	// 保存结果的栈
 	stack<int> result_stack;
 	// 存入开始的两个点
@@ -1000,64 +1054,64 @@ vector<Point> findConvexGraham(const vector<Point>& points)
 	return result;
 }
 
-// 4.9、寻找点集凸包算法（上下凸包法）时间复杂度O(nlogn)
+//// 4.9、寻找点集凸包算法（上下凸包法）时间复杂度O(nlogn)
+////
+////	参数： points : 平面点集
+////
+//// 点根据字典序的比较函数
+//bool cmp(Point a, Point b)
+//{
+//	if (a.x == b.x)
+//		return a.y < b.y;
+//	return a.x < b.x;
+//}
+//vector<Point> findConvex(const vector<Point>& points)
+//{
+//	vector<Point> result;
+//	if (points.size() < 3)
+//		return result;
 //
-//	参数： points : 平面点集
+//	vector<Point> tmp_points = points;
+//	// 首先将所有点按照字典序排序
+//	sort(tmp_points.begin(), tmp_points.end(), cmp);
 //
-// 点根据字典序的比较函数
-bool cmp(Point a, Point b)
-{
-	if (a.x == b.x)
-		return a.y < b.y;
-	return a.x < b.x;
-}
-vector<Point> findConvex(const vector<Point>& points)
-{
-	vector<Point> result;
-	if (points.size() < 3)
-		return result;
-
-	vector<Point> tmp_points = points;
-	// 首先将所有点按照字典序排序
-	sort(tmp_points.begin(), tmp_points.end(), cmp);
-
-	// 上凸包
-	vector<Point> upper_hull;
-	// 存入第一个和第二个点
-	upper_hull.push_back(tmp_points[0]);
-	upper_hull.push_back(tmp_points[1]);
-	for (int i = 2; i < tmp_points.size(); ++i)
-	{
-		upper_hull.push_back(tmp_points[i]);
-		while (upper_hull.size() > 2 && multiply(sub(upper_hull[upper_hull.size() - 2], upper_hull[upper_hull.size() - 3]), sub(upper_hull[upper_hull.size() - 1], upper_hull[upper_hull.size() - 3])).z >= 0)
-		{
-			upper_hull.erase(upper_hull.end() - 2);
-		}
-	}
-	// 下凸包
-	vector<Point> lower_hull;
-	// 存入倒数第一第二个点
-	lower_hull.push_back(tmp_points[tmp_points.size() - 1]);
-	lower_hull.push_back(tmp_points[tmp_points.size() - 2]);
-	for (int i = tmp_points.size() - 3; i >= 0; --i)
-	{
-		lower_hull.push_back(tmp_points[i]);
-		while (lower_hull.size() > 2 && multiply(sub(lower_hull[lower_hull.size() - 2], lower_hull[lower_hull.size() - 3]), sub(lower_hull[lower_hull.size() - 1], lower_hull[lower_hull.size() - 3])).z >= 0)
-		{
-			lower_hull.erase(lower_hull.end() - 1);
-		}
-	}
-	// 删除重复点
-	lower_hull.erase(lower_hull.begin());
-	lower_hull.erase(lower_hull.end() - 1);
-
-	// 合并上下凸包
-	upper_hull.insert(upper_hull.end(), lower_hull.begin(), lower_hull.end());
-
-	result = upper_hull;
-
-	return result;
-}
+//	// 上凸包
+//	vector<Point> upper_hull;
+//	// 存入第一个和第二个点
+//	upper_hull.push_back(tmp_points[0]);
+//	upper_hull.push_back(tmp_points[1]);
+//	for (int i = 2; i < tmp_points.size(); ++i)
+//	{
+//		upper_hull.push_back(tmp_points[i]);
+//		while (upper_hull.size() > 2 && multiply(sub(upper_hull[upper_hull.size() - 2], upper_hull[upper_hull.size() - 3]), sub(upper_hull[upper_hull.size() - 1], upper_hull[upper_hull.size() - 3])).z >= 0)
+//		{
+//			upper_hull.erase(upper_hull.end() - 2);
+//		}
+//	}
+//	// 下凸包
+//	vector<Point> lower_hull;
+//	// 存入倒数第一第二个点
+//	lower_hull.push_back(tmp_points[tmp_points.size() - 1]);
+//	lower_hull.push_back(tmp_points[tmp_points.size() - 2]);
+//	for (int i = tmp_points.size() - 3; i >= 0; --i)
+//	{
+//		lower_hull.push_back(tmp_points[i]);
+//		while (lower_hull.size() > 2 && multiply(sub(lower_hull[lower_hull.size() - 2], lower_hull[lower_hull.size() - 3]), sub(lower_hull[lower_hull.size() - 1], lower_hull[lower_hull.size() - 3])).z >= 0)
+//		{
+//			lower_hull.erase(lower_hull.end() - 1);
+//		}
+//	}
+//	// 删除重复点
+//	lower_hull.erase(lower_hull.begin());
+//	lower_hull.erase(lower_hull.end() - 1);
+//
+//	// 合并上下凸包
+//	upper_hull.insert(upper_hull.end(), lower_hull.begin(), lower_hull.end());
+//
+//	result = upper_hull;
+//
+//	return result;
+//}
 
 // 4.10、求简单多边形重心
 // 算法原理链接：
@@ -1234,6 +1288,6 @@ int circleToCircle(const Point& c1, double r1, const Point& c2, double r2)
 		return 2;
 	else if (ctoc_d == (r1 + r2))
 		return 3;
-	else if (ctoc_d > (r1 + r2))
+	else if (ctoc_d >(r1 + r2))
 		return 4;
 }
